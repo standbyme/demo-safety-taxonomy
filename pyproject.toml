@@ -1,0 +1,13 @@
+[project]
+name = "demo-safety-taxonomy"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "datasets>=4.8.4",
+    "fastparquet>=2026.3.0",
+    "huggingface-hub>=1.8.0",
+    "pandas>=3.0.2",
+    "pyarrow>=23.0.1",
+]
