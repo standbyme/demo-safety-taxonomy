@@ -678,14 +678,16 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{PCA}
 
-\begin{frame}{PCA — Goal}
+\begin{frame}{PCA - Goal}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Find a low-dimensional linear subspace that \textbf{maximises the variance} of the projected data.
-        \end{itemize}
-      \end{block}
+    \begin{block}{Objective}
+        \centering\normalsize
+        Find the orthonormal projection matrix $V_k \in \mathbb{R}^{d \times k}$ that \textbf{maximises the variance} of the projected data:
+        \[
+        \max_{V_k^\top V_k = I}\; \operatorname{tr}\!\left(V_k^\top \Sigma\, V_k\right)
+        \]
+    \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \centering
@@ -699,7 +701,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{columns}
 \end{frame}
 
-\begin{frame}{PCA — Pseudocode}
+\begin{frame}{PCA - Pseudocode}
   \begin{algorithm}[H]
     \small
     \caption{Principal Component Analysis}
@@ -716,12 +718,12 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{PCA — Disadvantages}
+\begin{frame}{PCA - Disadvantages}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \begin{alertblock}{ Key Limitations}
         \begin{itemize}\small
-          \item \textbf{Linearity}: captures only linear structure; fails on curved manifolds.
+          \item \textbf{Linearity} PCA can only capture linear relationships, fails on nonlinear manifolds.
           \item \textbf{No Label Awareness} PCA ignores class labels, the directions of maximum variance are not necessarily the most useful for classification or regression, use LDA instead.
         \end{itemize}
       \end{alertblock}
@@ -740,27 +742,22 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{t-SNE}
 
-\begin{frame}{t-SNE — Goal}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Produce a \textbf{2D or 3D visualisation} that faithfully reflects the \emph{local} neighbourhood structure of high-dimensional data.
-          \item \textbf{Preserve pairwise similarities}: points that are close in high-$d$ space should remain close in the embedding.
-          \item Reveal \textbf{cluster structure and group separation} that is invisible in the original space.
-          \item Handle \textbf{non-linear manifolds} by using probability distributions rather than Euclidean distances directly.
-          \item Alleviate the \textbf{crowding problem} of SNE via the heavy-tailed Student-$t$ kernel in low-$d$ space.
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: t-SNE Goal Illustration]}
-    \end{column}
-  \end{columns}
+\begin{frame}{t-SNE - Goal}
+
+  \begin{block}{Objective}
+    \centering\normalsize
+    Find a low-dimensional embedding $Y$ that \textbf{minimises the KL divergence} between the high-dimensional pairwise similarity distribution $P$ and its low-dimensional counterpart $Q$.
+  \end{block}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.65\textwidth]{tsne.jpg}
+        \caption{t-SNE: preserving local similarities by matching probability distributions.}
+    \end{figure}
+
 \end{frame}
 
-\begin{frame}{t-SNE — Pseudocode}
+\begin{frame}{t-SNE - Pseudocode}
   \begin{algorithm}[H]
     \footnotesize
     \caption{t-SNE}
@@ -780,51 +777,40 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{t-SNE — Disadvantages}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{alertblock}{ Key Limitations}
-        \begin{itemize}\small
-          \item \textbf{Non-convex}: results depend on random initialisation and can vary across runs.
-          \item \textbf{Scalability}: $O(n^2)$ memory/time (mitigated by Barnes–Hut, $O(n \log n)$).
-          \item \textbf{No out-of-sample}: cannot embed new points without re-running.
-          \item \textbf{Perplexity sensitivity}: cluster appearance changes drastically with perplexity.
-          \item \textbf{Distances not preserved globally}: inter-cluster distances are not meaningful.
-          \item \textbf{Not suitable for downstream tasks}: embedding not stable enough for regression/classification.
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: t-SNE Disadvantages Illustration]}
-    \end{column}
-  \end{columns}
+\begin{frame}{t-SNE - Disadvantages}
+    \begin{alertblock}{ Key Limitations}
+    \begin{itemize}\small
+        \item \textbf{Scalability}: $O(n^2)$ memory/time.
+        \item \textbf{Distances not preserved globally}: inter-cluster distances are not meaningful.
+        \item \textbf{Not suitable for downstream tasks}: embedding not stable enough for regression/classification.
+    \end{itemize}
+    \end{alertblock}
 \end{frame}
 
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{UMAP}
 
-\begin{frame}{UMAP — Goal}
+\begin{frame}{UMAP - Goal}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Learn a \textbf{low-dimensional embedding} that preserves both \emph{local} and \emph{global} topological structure of the data.
-          \item Model the data manifold as a \textbf{fuzzy simplicial set} grounded in Riemannian geometry, providing theoretical guarantees.
-          \item Achieve \textbf{faster runtime} than t-SNE while maintaining competitive visualisation quality.
-          \item Support \textbf{general target dimensions} ($m \geq 2$), making it suitable beyond visualisation.
-          \item Enable \textbf{out-of-sample embedding} via a parametric extension, unlike t-SNE.
-        \end{itemize}
-      \end{block}
+        \vspace{1.5cm}
+  \begin{block}{Objective}
+    \centering\normalsize
+    Use gradient descent to find a low-dimensional embedding that has samilar topological structure to the high-dimensional data, by minimising the cross-entropy.
+  \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: UMAP Goal Illustration]}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.65\textwidth]{UMAP.png}
+        \caption{UMAP: preserving topological structure in the manifold space.}
+    \end{figure}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{UMAP — Pseudocode}
+\begin{frame}{UMAP - Pseudocode}
   \begin{algorithm}[H]
     \small
     \caption{UMAP}
@@ -847,25 +833,16 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{UMAP — Disadvantages}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{alertblock}{ Key Limitations}
-        \begin{itemize}\small
-          \item \textbf{Stochastic}: different runs produce slightly different embeddings.
-          \item \textbf{Hyperparameter sensitivity}: \texttt{n\_neighbors} and \texttt{min\_dist} strongly affect topology.
-          \item \textbf{Theoretical opacity}: grounding in Riemannian geometry / algebraic topology makes it hard to interpret.
-          \item \textbf{Global structure}: better than t-SNE but still not perfectly faithful at large scales.
-          \item \textbf{Density not preserved}: local density differences are normalised away.
-          \item \textbf{Scalability to very high $d$}: approximate NN search required for speed.
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: UMAP Disadvantages Illustration]}
-    \end{column}
-  \end{columns}
+\begin{frame}{UMAP - Disadvantages}
+
+    \begin{alertblock}{ Key Limitations}
+    \begin{itemize}\small
+        \item \textbf{Stochastic}: different runs produce slightly different embeddings.
+        \item \textbf{Hyperparameter sensitivity}: \texttt{n\_neighbors} and \texttt{min\_dist} strongly affect topology.
+        \item \textbf{Scalability to very high $d$}: approximate NN search required for speed.
+    \end{itemize}
+    \end{alertblock}
+
 \end{frame}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -876,18 +853,16 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{K-means}
 
-\begin{frame}{K-means — Goal}
+\begin{frame}{K-means - Goal}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Partition $n$ data points into $k$ \textbf{non-overlapping clusters} by minimising the total within-cluster variance:
-                $\min \sum_{j=1}^{k} \sum_{i \in C_j} \|x_i - \mu_j\|^2$.
-          \item Assign each point to the cluster whose \textbf{centroid is nearest}, forming compact, spherical groups.
-          \item Provide a \textbf{simple and scalable} baseline for exploratory data analysis and quantisation.
-          \item Iteratively \textbf{refine cluster boundaries} until a stable, locally optimal assignment is reached.
-        \end{itemize}
-      \end{block}
+  \begin{block}{Objective}
+    \centering\normalsize
+    Find cluster assignments $\{C_j\}$ and centroids $\{\mu_j\}$ that \textbf{minimise the total within-cluster sum of squared distances}:
+    \[
+      \min_{\{C_j\},\{\mu_j\}}\;\sum_{j=1}^{k}\sum_{x_i \in C_j} \|x_i - \mu_j\|^2
+    \]
+  \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \centering
@@ -896,7 +871,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{columns}
 \end{frame}
 
-\begin{frame}{K-means — Pseudocode}
+\begin{frame}{K-means - Pseudocode}
   \begin{algorithm}[H]
     \small
     \caption{K-means Clustering}
@@ -917,7 +892,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{K-means — Disadvantages}
+\begin{frame}{K-means - Disadvantages}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \begin{alertblock}{ Key Limitations}
@@ -941,18 +916,16 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{DBSCAN}
 
-\begin{frame}{DBSCAN — Goal}
+\begin{frame}{DBSCAN - Goal}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Discover clusters of \textbf{arbitrary shape} by connecting points that lie in dense regions.
-          \item \textbf{Automatically determine the number of clusters} — no need to specify $k$ in advance.
-          \item Explicitly identify and label \textbf{noise/outlier points} that do not belong to any dense region.
-          \item Use only two intuitive parameters: neighbourhood radius $\varepsilon$ and minimum density \textit{minPts}.
-          \item Handle datasets where clusters are \textbf{non-convex, elongated, or interleaved} in complex ways.
-        \end{itemize}
-      \end{block}
+  \begin{block}{Objective}
+    \centering\normalsize
+    Partition points into clusters of \textbf{arbitrary shape} by grouping all points that are \emph{density-reachable} from at least one core point (i.e.\ have $\geq \mathit{minPts}$ neighbours within radius $\varepsilon$), while labelling all remaining points as \textbf{noise}:
+    \[
+      C_j = \bigl\{x_i \mid x_i \text{ is density-reachable from some core point } x_c \in C_j\bigr\}
+    \]
+  \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \centering
@@ -961,7 +934,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{columns}
 \end{frame}
 
-\begin{frame}{DBSCAN — Pseudocode}
+\begin{frame}{DBSCAN - Pseudocode}
   \begin{algorithm}[H]
     \footnotesize
     \caption{DBSCAN}
@@ -987,7 +960,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{DBSCAN — Disadvantages}
+\begin{frame}{DBSCAN - Disadvantages}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \begin{alertblock}{ Key Limitations}
@@ -1011,18 +984,17 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{HDBSCAN}
 
-\begin{frame}{HDBSCAN — Goal}
+\begin{frame}{HDBSCAN - Goal}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
-      \begin{block}{Objective}
-        \begin{itemize}\small
-          \item Extend DBSCAN to handle \textbf{varying-density clusters} by building a full cluster hierarchy.
-          \item Extract a \textbf{flat clustering} from the hierarchy by selecting the most stable, persistent clusters.
-          \item Assign \textbf{soft membership probabilities} to each point, quantifying how confidently it belongs to its cluster.
-          \item Robustly detect \textbf{noise and outliers} without requiring a global density threshold.
-          \item Require only a single parameter (\textit{min\_cluster\_size}), making it easier to tune than DBSCAN.
-        \end{itemize}
-      \end{block}
+  \begin{block}{Objective}
+    \centering\normalsize
+    Extract the flat clustering that \textbf{maximises the total cluster stability} across the full density hierarchy, where stability measures how persistently a cluster survives as the density threshold $\lambda$ is raised:
+    \[
+      \max_{\text{flat clustering}}\;\sum_{C \in \text{selected clusters}} \mathrm{stability}(C),
+      \quad \mathrm{stability}(C) = \sum_{x_i \in C}\!\bigl(\lambda_i^{\mathrm{death}} - \lambda_i^{\mathrm{birth}}\bigr)
+    \]
+  \end{block}
     \end{column}
     \begin{column}{0.52\textwidth}
       \centering
@@ -1031,7 +1003,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{columns}
 \end{frame}
 
-\begin{frame}{HDBSCAN — Pseudocode}
+\begin{frame}{HDBSCAN - Pseudocode}
   \begin{algorithm}[H]
     \footnotesize
     \caption{HDBSCAN}
@@ -1054,7 +1026,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{HDBSCAN — Disadvantages}
+\begin{frame}{HDBSCAN - Disadvantages}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \begin{alertblock}{ Key Limitations}
@@ -1099,7 +1071,7 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
   \vspace{0.8cm}
   \begin{block}{}
     \centering\itshape
-    ``No free lunch — choose the algorithm that matches your data geometry and task requirements.''
+    ``No free lunch - choose the algorithm that matches your data geometry and task requirements.''
   \end{block}
 \end{frame}
 
