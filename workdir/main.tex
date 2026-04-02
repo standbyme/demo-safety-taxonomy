@@ -4,6 +4,17 @@
 \usetheme{Madrid}
 \usecolortheme{seahorse}
 
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, calc, decorations.pathreplacing, backgrounds}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{forest}
+\usepackage{appendixnumberbeamer}
+
 % Colors - Meta-inspired palette
 \definecolor{metablue}{RGB}{24,119,242}
 \definecolor{metadark}{RGB}{30,40,60}
@@ -204,6 +215,417 @@
     \begin{center}
         \Huge \textbf{Thank You \& Questions}
     \end{center}
+\end{frame}
+
+
+
+% ============================================================
+% ============================================================
+%                    APPENDIX: Q&A BACKUP
+% ============================================================
+% ============================================================
+\appendix
+
+\begin{frame}[plain]
+\centering
+\vspace{2.5cm}
+{\Huge\bfseries\textcolor{metadark}{Appendix}}\\[0.3cm]
+{\large\textcolor{metagray}{Backup Slides for Q\&A}}
+\end{frame}
+
+% ============================================================
+% A1: HDBSCAN BASICS
+% ============================================================
+\begin{frame}{Q\&A: HDBSCAN}
+\centering
+\begin{tikzpicture}[
+    scale=0.75, transform shape,
+    sbox/.style={rounded corners=6pt,
+        minimum width=3.5cm, minimum height=2.4cm,
+        font=\small, text=metadark, align=center},
+    arrow/.style={-{Stealth[length=5pt]}, thick, metablue}
+]
+
+% Step 1
+\node[sbox, draw=metablue, fill=metablue!10] (s1) at (-5.5,0) {
+    \textbf{1. Core Distance}\\[4pt]
+    \footnotesize For each point $p$,\\
+    \footnotesize compute $\mathrm{core}_k(p)$:\\
+    \footnotesize distance to its $k$-th\\
+    \footnotesize nearest neighbor.
+};
+
+% Step 2
+\node[sbox, draw=accentorange, fill=accentorange!10] (s2) at (-1.5,0) {
+    \textbf{2. Mutual}\\
+    \textbf{Reachability}\\[4pt]
+    \footnotesize $d_\mathrm{mreach}(a,b) =$\\[1pt]
+    \footnotesize $\max\!\big(\mathrm{core}_k(a),$\\
+    \footnotesize $\mathrm{core}_k(b),\, d(a,b)\big)$
+};
+
+% Step 3
+\node[sbox, draw=accentgreen!70!black, fill=accentgreen!10] (s3) at (2.5,0) {
+    \textbf{3. Build MST \&}\\
+    \textbf{Condensed Tree}\\[4pt]
+    \footnotesize Min spanning tree on\\
+    \footnotesize mutual reachability.\\
+    \footnotesize Prune branches with\\
+    \footnotesize $<$ \texttt{min\_cluster\_size}.
+};
+
+% Step 4
+\node[sbox, draw=accentred!80!black, fill=accentred!10] (s4) at (6.5,0) {
+    \textbf{4. Extract}\\
+    \textbf{Flat Clusters}\\[4pt]
+    \footnotesize Select clusters from\\
+    \footnotesize condensed tree via\\
+    \footnotesize \texttt{eom} or \texttt{leaf}.\\
+    \footnotesize Sparse points $\to$ noise.
+};
+
+\draw[arrow] (s1) -- (s2);
+\draw[arrow] (s2) -- (s3);
+\draw[arrow] (s3) -- (s4);
+
+\end{tikzpicture}
+
+\vspace{0.3cm}
+\begin{tcolorbox}[colback=metalight, colframe=metablue, boxrule=0.5pt, arc=4pt,
+    left=4pt, right=4pt, top=3pt, bottom=3pt]
+\small
+\textbf{Key insight vs.\ DBSCAN:} Instead of a single global density threshold $\varepsilon$, HDBSCAN considers \emph{all} density levels simultaneously. It builds a hierarchy of clusters across all thresholds and extracts the most \textbf{persistent} (stable) ones. Points in sparse regions that never belong to a stable cluster are labeled \textbf{noise} ($-1$). This makes it robust to datasets with clusters of varying density.
+\end{tcolorbox}
+\end{frame}
+
+% ============================================================
+% A2: HDBSCAN PARAMETER CHOICE
+% ============================================================
+\begin{frame}{Q\&A: HDBSCAN --- Parameter Choices Explained}
+\centering
+\begin{tikzpicture}[scale=0.78, transform shape]
+
+% === min_cluster_size ===
+\node[font=\normalsize\bfseries, text=metablue] at (-4.5, 3.3) {\texttt{min\_cluster\_size}};
+
+% Small value
+\begin{scope}[shift={(-6.5,0)}]
+\node[font=\footnotesize\bfseries, text=accentgreen!70!black] at (0,2.5) {= 5 (our choice)};
+\draw[metagray, thick] (-1.5,-1.5) rectangle (1.5,2.0);
+\foreach \i in {1,...,6} {
+    \pgfmathsetmacro{\rx}{-0.8+0.3*rand}
+    \pgfmathsetmacro{\ry}{1.2+0.3*rand}
+    \fill[clusterA, opacity=0.8] (\rx,\ry) circle (2pt);
+}
+\foreach \i in {1,...,5} {
+    \pgfmathsetmacro{\rx}{0.5+0.3*rand}
+    \pgfmathsetmacro{\ry}{0.8+0.3*rand}
+    \fill[clusterD, opacity=0.8] (\rx,\ry) circle (2pt);
+}
+\foreach \i in {1,...,6} {
+    \pgfmathsetmacro{\rx}{-0.3+0.3*rand}
+    \pgfmathsetmacro{\ry}{-0.2+0.3*rand}
+    \fill[clusterC, opacity=0.8] (\rx,\ry) circle (2pt);
+}
+\foreach \i in {1,...,5} {
+    \pgfmathsetmacro{\rx}{0.6+0.3*rand}
+    \pgfmathsetmacro{\ry}{-0.8+0.3*rand}
+    \fill[clusterE, opacity=0.8] (\rx,\ry) circle (2pt);
+}
+\fill[noisegray] (-1.1,-1.0) circle (1.5pt);
+\fill[noisegray] (1.1,1.5) circle (1.5pt);
+\node[font=\tiny, text=metagray] at (0,-1.8) {Fine-grained: many clusters};
+\end{scope}
+
+% Large value
+\begin{scope}[shift={(-2.5,0)}]
+\node[font=\footnotesize\bfseries, text=accentred] at (0,2.5) {= 50};
+\draw[metagray, thick] (-1.5,-1.5) rectangle (1.5,2.0);
+\foreach \i in {1,...,15} {
+    \pgfmathsetmacro{\rx}{-0.3+0.7*rand}
+    \pgfmathsetmacro{\ry}{0.8+0.5*rand}
+    \fill[clusterA, opacity=0.6] (\rx,\ry) circle (2pt);
+}
+\foreach \i in {1,...,12} {
+    \pgfmathsetmacro{\rx}{0.1+0.6*rand}
+    \pgfmathsetmacro{\ry}{-0.6+0.5*rand}
+    \fill[clusterD, opacity=0.6] (\rx,\ry) circle (2pt);
+}
+\fill[noisegray] (-1.2,0.2) circle (1.5pt);
+\fill[noisegray] (1.2,-1.1) circle (1.5pt);
+\fill[noisegray] (-0.8,-1.2) circle (1.5pt);
+\fill[noisegray] (0.9,1.6) circle (1.5pt);
+\fill[noisegray] (-1.0,1.5) circle (1.5pt);
+\node[font=\tiny, text=metagray] at (0,-1.8) {Coarse: fewer, larger clusters};
+\end{scope}
+
+% === cluster_selection_method ===
+\node[font=\normalsize\bfseries, text=metablue] at (4.5, 3.3) {\texttt{cluster\_selection\_method}};
+
+\begin{scope}[shift={(3,0)}]
+\node[font=\footnotesize\bfseries, text=accentorange] at (0,2.5) {\texttt{eom} (default)};
+\draw[metagray, thick] (-1.2,-1.5) rectangle (1.2,2.0);
+\node[font=\tiny, text=metadark, align=center, text width=2cm] at (0,0.5) {Selects clusters with\\greatest \textbf{excess of mass}\\(stability over time)};
+\node[font=\tiny, text=metagray, align=center] at (0,-0.7) {Tends toward\\fewer, robust clusters};
+\end{scope}
+
+\begin{scope}[shift={(6,0)}]
+\node[font=\footnotesize\bfseries, text=accentgreen!70!black] at (0,2.5) {\texttt{leaf} (our choice)};
+\draw[metagray, thick] (-1.2,-1.5) rectangle (1.2,2.0);
+\node[font=\tiny, text=metadark, align=center, text width=2cm] at (0,0.5) {Selects \textbf{leaf nodes}\\from condensed tree\\(finest partition)};
+\node[font=\tiny, text=metagray, align=center] at (0,-0.7) {Produces more\\fine-grained clusters};
+\end{scope}
+
+\end{tikzpicture}
+
+\vspace{0.15cm}
+\begin{tcolorbox}[colback=accentgreen!8, colframe=accentgreen!70!black, boxrule=0.5pt, arc=4pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt]
+\small
+\textbf{Our rationale:} Small \texttt{min\_cluster\_size=5} + \texttt{leaf} selection --- we want to detect \emph{niche} attack vectors (e.g., ``exam cheating'' vs.\ ``insider trading'') rather than lumping all fraud into one bucket. \texttt{min\_samples} (default = \texttt{min\_cluster\_size}) controls how conservative noise detection is --- lower values assign more points to clusters.
+\end{tcolorbox}
+\end{frame}
+
+% ============================================================
+% A3: UMAP BASICS
+% ============================================================
+\begin{frame}{Q\&A: UMAP}
+\centering
+\begin{tikzpicture}[
+    scale=0.78, transform shape,
+    ubox/.style={rounded corners=6pt,
+        minimum width=4.2cm, minimum height=2.8cm,
+        font=\small, text=metadark, align=center},
+    arrow/.style={-{Stealth[length=5pt]}, thick, metablue}
+]
+
+% Step 1
+\node[ubox, draw=metablue, fill=metablue!10] (s1) at (-5,0) {
+    \textbf{1. Build Fuzzy}\\
+    \textbf{k-NN Graph}\\[4pt]
+    \footnotesize For each point, find\\
+    \footnotesize $k$ nearest neighbors.\\
+    \footnotesize Assign fuzzy membership\\
+    \footnotesize weights via exponential\\
+    \footnotesize decay by distance.\\
+    \footnotesize ($\sigma$ adapted per point)
+};
+
+% Step 2
+\node[ubox, draw=accentorange, fill=accentorange!10] (s2) at (0,0) {
+    \textbf{2. Symmetrize}\\
+    \textbf{the Graph}\\[4pt]
+    \footnotesize Combine directed\\
+    \footnotesize neighbor graphs into\\
+    \footnotesize a symmetric fuzzy\\
+    \footnotesize simplicial set via:\\[1pt]
+    \footnotesize $w = a + b - a \cdot b$\\[1pt]
+    \footnotesize (probabilistic union)
+};
+
+% Step 3
+\node[ubox, draw=accentgreen!70!black, fill=accentgreen!10] (s3) at (5,0) {
+    \textbf{3. Optimize}\\
+    \textbf{Low-dim Layout}\\[4pt]
+    \footnotesize Initialize via spectral\\
+    \footnotesize embedding. Minimize\\
+    \footnotesize \textbf{cross-entropy} between\\
+    \footnotesize high-dim \& low-dim\\
+    \footnotesize fuzzy graphs using\\
+    \footnotesize stochastic gradient descent.
+};
+
+\draw[arrow] (s1) -- (s2);
+\draw[arrow] (s2) -- (s3);
+
+\end{tikzpicture}
+
+\vspace{0.2cm}
+\begin{tcolorbox}[colback=metalight, colframe=metablue, boxrule=0.5pt, arc=4pt,
+    left=4pt, right=4pt, top=3pt, bottom=3pt]
+\small
+\textbf{Key advantages over t-SNE:} (i) Solid mathematical foundation in Riemannian geometry \& algebraic topology. (ii) Preserves more \textbf{global structure} --- inter-cluster distances are meaningful, not just intra-cluster. (iii) Faster: $O(N^{1.14})$ vs.\ $O(N^2)$. (iv) Supports arbitrary target dimensions (not just 2D) and diverse metrics.
+\end{tcolorbox}
+\end{frame}
+
+% ============================================================
+% A4: UMAP PARAMETER CHOICE
+% ============================================================
+\begin{frame}{Q\&A: UMAP --- Parameter Choices Explained}
+\centering
+\begin{tikzpicture}[scale=0.78, transform shape]
+
+% === n_neighbors ===
+\node[font=\normalsize\bfseries, text=metablue] at (-4.5, 3.5) {\texttt{n\_neighbors}};
+
+\begin{scope}[shift={(-6.5,0)}]
+\node[font=\footnotesize\bfseries, text=accentorange] at (0,2.5) {small (5)};
+\draw[metagray, thick] (-1.5,-1.5) rectangle (1.5,2.0);
+\fill[clusterA] (-0.6,1.2) circle (2pt);
+\fill[clusterA] (-0.4,1.4) circle (2pt);
+\fill[clusterA] (-0.5,1.0) circle (2pt);
+\fill[clusterD] (0.7,0.3) circle (2pt);
+\fill[clusterD] (0.9,0.1) circle (2pt);
+\fill[clusterD] (0.8,0.5) circle (2pt);
+\fill[clusterC] (-0.3,-0.6) circle (2pt);
+\fill[clusterC] (-0.1,-0.8) circle (2pt);
+\fill[clusterE] (0.5,-1.0) circle (2pt);
+\fill[clusterE] (0.7,-1.2) circle (2pt);
+\node[font=\tiny, text=metagray, align=center] at (0,-1.8) {Tight local clumps,\\noisy global layout};
+\end{scope}
+
+\begin{scope}[shift={(-2.5,0)}]
+\node[font=\footnotesize\bfseries, text=accentgreen!70!black] at (0,2.5) {= 20 (ours)};
+\draw[metagray, thick] (-1.5,-1.5) rectangle (1.5,2.0);
+\fill[clusterA] (-0.6,1.0) circle (2pt);
+\fill[clusterA] (-0.3,1.3) circle (2pt);
+\fill[clusterA] (-0.7,1.4) circle (2pt);
+\fill[clusterA] (-0.5,0.8) circle (2pt);
+\fill[clusterD] (0.6,-0.1) circle (2pt);
+\fill[clusterD] (0.8,0.2) circle (2pt);
+\fill[clusterD] (0.5,0.4) circle (2pt);
+\fill[clusterC] (-0.4,-0.7) circle (2pt);
+\fill[clusterC] (-0.1,-0.9) circle (2pt);
+\fill[clusterC] (-0.6,-1.0) circle (2pt);
+\node[font=\tiny, text=metagray, align=center] at (0,-1.8) {\textbf{Balanced}:\\local + global};
+\end{scope}
+
+\begin{scope}[shift={(1.0,0)}]
+\node[font=\footnotesize\bfseries, text=accentred] at (0,2.5) {large (200)};
+\draw[metagray, thick] (-1.5,-1.5) rectangle (1.5,2.0);
+\foreach \i in {1,...,15} {
+    \pgfmathsetmacro{\rx}{-0.2+0.8*rand}
+    \pgfmathsetmacro{\ry}{0.0+0.8*rand}
+    \fill[clusterA!50!clusterD, opacity=0.5] (\rx,\ry) circle (2pt);
+}
+\node[font=\tiny, text=metagray, align=center] at (0,-1.8) {Over-smoothed,\\clusters merge};
+\end{scope}
+
+% === Other params ===
+\node[font=\normalsize\bfseries, text=metablue] at (5.5, 3.5) {Other Parameters};
+
+\begin{scope}[shift={(4.2,-0.2)}]
+\node[draw=metagray, fill=metalight, rounded corners=4pt, font=\small,
+    align=left, inner sep=8pt, text width=3.8cm] at (1.3,1.0) {
+    \textbf{\texttt{min\_dist} = 0.1}\\[2pt]
+    \footnotesize How tightly points can\\
+    pack. Small $\to$ tighter.\\
+    Large $\to$ more uniform.\\[6pt]
+    \textbf{\texttt{metric} = cosine}\\[2pt]
+    \footnotesize Angular similarity ---\\
+    natural for embeddings,\\
+    ignores vector magnitude.\\[6pt]
+    \textbf{\texttt{n\_components} = 5}\\[2pt]
+    \footnotesize Enough dims for\\
+    HDBSCAN, avoids\\
+    curse of dimensionality.
+};
+\end{scope}
+
+\end{tikzpicture}
+
+\vspace{0.1cm}
+\begin{tcolorbox}[colback=accentgreen!8, colframe=accentgreen!70!black, boxrule=0.5pt, arc=4pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt]
+\small
+\textbf{Our rationale:} \texttt{n\_neighbors=20} balances local semantic detail with global category separation for 520 data points. We use \texttt{n\_components=5} for clustering (richer structure) and a separate \texttt{n\_components=2} pass purely for Plotly visualization.
+\end{tcolorbox}
+\end{frame}
+
+% ============================================================
+% A5: SIMILAR ITEMS NOT IN SAME CLUSTER
+% ============================================================
+\begin{frame}{Q\&A: Similar Items Not Assigned to the Same Cluster}
+\begin{tcolorbox}[colback=accentred!8, colframe=accentred, title=\textbf{Problem}, fonttitle=\small, boxrule=0.5pt, arc=4pt]
+\small
+Semantically similar prompts end up in \textbf{different clusters}, or one is clustered while the other is labeled noise.
+\end{tcolorbox}
+
+\vspace{0.2cm}
+\centering
+\begin{tikzpicture}[
+    scale=0.78, transform shape,
+    fix/.style={draw=accentgreen!70!black, fill=accentgreen!8, rounded corners=6pt,
+        minimum width=5.8cm, minimum height=2.2cm,
+        font=\small, text=metadark, align=left, inner sep=6pt}
+]
+
+\node[fix] (f1) at (-4,0) {
+    \textbf{Tune UMAP:}\\[3pt]
+    \footnotesize $\bullet$ \textbf{Increase \texttt{n\_neighbors}} --- broader\\
+    \footnotesize \quad context merges nearby groups\\
+    \footnotesize $\bullet$ \textbf{Decrease \texttt{min\_dist}} --- allows\\
+    \footnotesize \quad related points to pack tighter\\
+    \footnotesize $\bullet$ Increase \texttt{n\_components} to give\\
+    \footnotesize \quad HDBSCAN more structure to work with
+};
+
+\node[fix] (f2) at (4,0) {
+    \textbf{Tune HDBSCAN:}\\[3pt]
+    \footnotesize $\bullet$ \textbf{Decrease \texttt{min\_cluster\_size}}\\
+    \footnotesize \quad --- smaller groups can become clusters\\
+    \footnotesize $\bullet$ Lower \texttt{min\_samples} --- less\\
+    \footnotesize \quad conservative noise detection\\
+    \footnotesize $\bullet$ Try \texttt{eom} selection --- merges\\
+    \footnotesize \quad related sub-clusters into parents
+};
+
+\end{tikzpicture}
+\end{frame}
+
+% ============================================================
+% A6: DISSIMILAR ITEMS IN SAME CLUSTER
+% ============================================================
+\begin{frame}{Q\&A: Dissimilar Items Assigned to the Same Cluster}
+\begin{tcolorbox}[colback=accentred!8, colframe=accentred, title=\textbf{Problem}, fonttitle=\small, boxrule=0.5pt, arc=4pt]
+\small
+Semantically different prompts end up in the \textbf{same cluster} --- the cluster mixes unrelated risks.
+\end{tcolorbox}
+
+\vspace{0.2cm}
+\centering
+\begin{tikzpicture}[
+    scale=0.78, transform shape,
+    fix/.style={draw=accentgreen!70!black, fill=accentgreen!8, rounded corners=6pt,
+        minimum width=5.8cm, minimum height=2.2cm,
+        font=\small, text=metadark, align=left, inner sep=6pt}
+]
+
+\node[fix] (f1) at (-4,0) {
+    \textbf{Tune UMAP:}\\[3pt]
+    \footnotesize $\bullet$ \textbf{Decrease \texttt{n\_neighbors}} ---\\
+    \footnotesize \quad emphasize local structure, pull\\
+    \footnotesize \quad apart dissimilar items\\
+    \footnotesize $\bullet$ \textbf{Increase \texttt{n\_components}} ---\\
+    \footnotesize \quad more dims preserve finer\\
+    \footnotesize \quad semantic distinctions
+};
+
+\node[fix] (f2) at (4,0) {
+    \textbf{Tune HDBSCAN:}\\[3pt]
+    \footnotesize $\bullet$ \textbf{Decrease \texttt{min\_cluster\_size}}\\
+    \footnotesize \quad --- smaller, purer clusters\\
+    \footnotesize $\bullet$ \textbf{Switch \texttt{eom} $\to$ \texttt{leaf}}\\
+    \footnotesize \quad --- selects finest partition\\
+    \footnotesize $\bullet$ Raise \texttt{min\_samples} --- stricter\\
+    \footnotesize \quad density requirement
+};
+
+\end{tikzpicture}
+\end{frame}
+
+% Slide: Temporal Analysis
+\begin{frame}{Detecting Emerging Risks via Temporal Analysis}
+    Temporal analysis tracks how the taxonomy evolves to spot novel attack vectors.
+    \vspace{0.3cm}
+    
+    \textbf{Core Strategies:}
+    \begin{itemize}
+        \item \textbf{Sliding-Window Clustering:} Partition data into time-based slices (e.g., weekly). Compare clusters between window $t-1$ and $t$ using centroid cosine similarity to identify entirely new risks.
+        \item \textbf{Embedding Drift \& Noise Monitoring:} Instead of immediate re-clustering, measure the distance of incoming prompts to existing centroids. A dense accumulation of points in "no man's land" (or transitioning from HDBSCAN noise to a cluster) signals an emerging pattern.
+        \item \textbf{Volume Velocity Tracking:} Monitor prompt frequency per topic. Alert on sudden spikes (e.g., $>2\times$ volume growth in a single window) indicating a new risk.
+    \end{itemize}
+
 \end{frame}
 
 \end{document}
