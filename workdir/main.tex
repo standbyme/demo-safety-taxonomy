@@ -893,45 +893,25 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 \end{frame}
 
 \begin{frame}{K-means - Disadvantages}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{alertblock}{ Key Limitations}
-        \begin{itemize}\small
-          \item \textbf{Must specify $k$}: requires prior knowledge of the number of clusters.
-          \item \textbf{Sensitive to initialisation}: can converge to local optima (mitigated by K-means++).
-          \item \textbf{Assumes convexity}: poorly handles non-convex or elongated clusters.
-          \item \textbf{Sensitive to outliers}: outliers distort centroid positions significantly.
-          \item \textbf{Assumes equal cluster size/variance}: unequal clusters are often misassigned.
-          \item \textbf{Euclidean only}: not directly applicable to non-metric spaces.
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: K-means Disadvantages Illustration]}
-    \end{column}
-  \end{columns}
+
+    \begin{alertblock}{Key Limitations}
+    \begin{itemize}\small
+        \item \textbf{Must specify $k$}: requires prior knowledge of the number of clusters.
+        \item \textbf{Sensitive to initialisation}: can converge to local optima (mitigated by K-means++).
+        \item \textbf{Assumes convexity}: poorly handles non-convex clusters.
+    \end{itemize}
+    \end{alertblock}
+
 \end{frame}
 
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{DBSCAN}
 
 \begin{frame}{DBSCAN - Goal}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
   \begin{block}{Objective}
     \centering\normalsize
-    Partition points into clusters of \textbf{arbitrary shape} by grouping all points that are \emph{density-reachable} from at least one core point (i.e.\ have $\geq \mathit{minPts}$ neighbours within radius $\varepsilon$), while labelling all remaining points as \textbf{noise}:
-    \[
-      C_j = \bigl\{x_i \mid x_i \text{ is density-reachable from some core point } x_c \in C_j\bigr\}
-    \]
+    Partition points into clusters of \textbf{arbitrary shape} by grouping all points that are \emph{density-reachable} from at least one core point (i.e.\ have $\geq \mathit{minPts}$ neighbours within radius $\varepsilon$), while labelling all remaining points as \textbf{noise}.  \url{https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/}
   \end{block}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: DBSCAN Goal Illustration]}
-    \end{column}
-  \end{columns}
 \end{frame}
 
 \begin{frame}{DBSCAN - Pseudocode}
@@ -961,46 +941,26 @@ Semantically different prompts end up in the \textbf{same cluster} --- the clust
 \end{frame}
 
 \begin{frame}{DBSCAN - Disadvantages}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{alertblock}{ Key Limitations}
-        \begin{itemize}\small
-          \item \textbf{Varying density}: struggles when clusters have very different densities.
-          \item \textbf{Parameter sensitivity}: results highly sensitive to $\varepsilon$ and \textit{minPts}.
-          \item \textbf{High dimensionality}: distance metrics lose meaning (curse of dimensionality).
-          \item \textbf{Scalability}: naive implementation is $O(n^2)$; spatial indexing helps but adds complexity.
-          \item \textbf{Border point ambiguity}: border points reachable from multiple clusters are assigned non-deterministically.
-          \item \textbf{No probabilistic output}: hard assignments, no cluster membership probabilities.
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: DBSCAN Disadvantages Illustration]}
-    \end{column}
-  \end{columns}
+
+    \begin{alertblock}{ Key Limitations}
+    \begin{itemize}\small
+        \item \textbf{Varying density}: struggles when clusters have very different densities.
+        \item \textbf{Parameter sensitivity}: results highly sensitive to $\varepsilon$ and \textit{minPts}.
+        \item \textbf{Scalability}: naive implementation is $O(n^2)$; spatial indexing helps but adds complexity.
+        \item \textbf{Border point ambiguity}: border points reachable from multiple clusters are assigned non-deterministically.
+    \end{itemize}
+    \end{alertblock}
+
 \end{frame}
 
 % ────────────────────────────────────────────────────────────────────────────
 \subsection{HDBSCAN}
 
 \begin{frame}{HDBSCAN - Goal}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
   \begin{block}{Objective}
     \centering\normalsize
-    Extract the flat clustering that \textbf{maximises the total cluster stability} across the full density hierarchy, where stability measures how persistently a cluster survives as the density threshold $\lambda$ is raised:
-    \[
-      \max_{\text{flat clustering}}\;\sum_{C \in \text{selected clusters}} \mathrm{stability}(C),
-      \quad \mathrm{stability}(C) = \sum_{x_i \in C}\!\bigl(\lambda_i^{\mathrm{death}} - \lambda_i^{\mathrm{birth}}\bigr)
-    \]
+    Extract the flat clustering that \textbf{maximises the total cluster stability} across the full density hierarchy, where stability measures how persistently a cluster survives as the density threshold $\lambda$ is raised.
   \end{block}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \centering
-      \figplaceholder{7.2cm}{5.4cm}{[Figure: HDBSCAN Goal Illustration]}
-    \end{column}
-  \end{columns}
 \end{frame}
 
 \begin{frame}{HDBSCAN - Pseudocode}
